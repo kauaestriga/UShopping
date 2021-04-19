@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'UShopping',
       theme: ThemeData(
         primarySwatch: Colors.red,
+        primaryColor: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       initialRoute: '/',
