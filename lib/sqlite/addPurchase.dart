@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_ushopping/utils/CustomButton.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddPurchase extends StatefulWidget {
@@ -99,6 +100,12 @@ class _AddPurchaseState extends State<AddPurchase> {
                       )
                     ]),
                 SizedBox(height: 16),
+                CustomButton(
+                  text: "Cadastrar",
+                  onPressed: () {
+                    print("Teste botao");
+                  },
+                )
               ],
             ),
           ),
