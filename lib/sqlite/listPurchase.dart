@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'model/purchase.dart';
+import 'addPurchase.dart';
 
 class ListPurchase extends StatefulWidget {
   @override
@@ -89,8 +90,13 @@ class _ListPurchaseState extends State<ListPurchase> {
             leading: Text("${purchaseList[index].id}"),
             title: Text("${purchaseList[index].productName}"),
             subtitle: Text("${purchaseList[index].dollarProductPrice}"),
-            onTap: (){ 
-              Navigator. pushNamed(context, "/addPurchase");
+             onTap: () {
+                 Navigator.push(
+                 context,
+                 MaterialPageRoute(
+                    builder: (context) => AddPurchase(purchaseItem: purchaseList[index]),
+                  ),
+                );
             },
             onLongPress: (){
               deletePerson(index);

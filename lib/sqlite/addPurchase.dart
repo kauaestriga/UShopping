@@ -2,15 +2,20 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_ushopping/sqlite/model/purchase.dart';
 import 'package:flutter_app_ushopping/utils/CustomButton.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddPurchase extends StatefulWidget {
+  final Purchase purchaseItem;
+
+  const AddPurchase ({ Key key, this.purchaseItem }): super(key: key);
   @override
   _AddPurchaseState createState() => _AddPurchaseState();
 }
 
 class _AddPurchaseState extends State<AddPurchase> {
+
   @override
   void initState() {
     super.initState();
