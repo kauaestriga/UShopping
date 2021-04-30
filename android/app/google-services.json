@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "564019967357",
+    "firebase_url": "https://ushopping-flutter-20mob-default-rtdb.firebaseio.com",
+    "project_id": "ushopping-flutter-20mob",
+    "storage_bucket": "ushopping-flutter-20mob.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564019967357:android:eefc814b1eef49f49e0814",
+        "android_client_info": {
+          "package_name": "com.example.flutter_app_ushopping"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "564019967357-u222n7nb2mm7vogpcki7ps9qupmnabd5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBt1A4vovk6CezQlvtHrbNi-c5bmvpeMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564019967357-u222n7nb2mm7vogpcki7ps9qupmnabd5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

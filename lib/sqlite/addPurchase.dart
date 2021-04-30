@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_ushopping/sqlite/model/purchase.dart';
 import 'package:flutter_app_ushopping/utils/CustomButton.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_app_ushopping/utils/ImageUtils.dart';
+
+import 'model/purchase.dart';
 
 class AddPurchase extends StatefulWidget {
   final Purchase purchaseItem;
@@ -19,6 +22,14 @@ class _AddPurchaseState extends State<AddPurchase> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.purchaseItem != null) {
+      _productNameController.text = widget.purchaseItem.productName;
+      _valueController.text = widget.purchaseItem.fullProductPrice.toString();
+      if(widget.purchaseItem.image != "")
+        _image = File.fromRawPath(ImageUtils.base64ToImage(widget.purchaseItem.image));
+      _isCard = widget.purchaseItem.isCard;
+    }
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -27,7 +38,9 @@ class _AddPurchaseState extends State<AddPurchase> {
   String _dropDownValue;
   var _states = ['Alabama', 'Alaska', 'New York', 'Washington'];
 
-  bool isCard = false;
+  bool _isCard = false;
+  double _iofTax = 6.38;
+  double _stateTax = 0;
 
   final TextEditingController _productNameController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
@@ -73,7 +86,6 @@ class _AddPurchaseState extends State<AddPurchase> {
                 SizedBox(height: 16),
                 _loadItensDropDown(),
                 Row(
-                    // mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Expanded(
@@ -91,10 +103,10 @@ class _AddPurchaseState extends State<AddPurchase> {
                           children: [
                             Text("Cartão?", style: TextStyle(fontSize: 16)),
                             Switch(
-                              value: isCard,
+                              value: _isCard,
                               onChanged: (value) {
                                 setState(() {
-                                  isCard = value;
+                                  _isCard = value;
                                 });
                               },
                               activeTrackColor: Colors.red,
@@ -108,7 +120,26 @@ class _AddPurchaseState extends State<AddPurchase> {
                 CustomButton(
                   text: "Cadastrar",
                   onPressed: () {
-                    print("Teste botao");
+                    if (_formKey.currentState.validate()) {
+                      var fullPrice = double.parse(_valueController.text);
+                      if (_stateTax != 0) {
+                        fullPrice = double.parse(_valueController.text) * (_stateTax / 100 + 1);
+                      }
+
+                      if (_isCard) {
+                        fullPrice = fullPrice * (_iofTax / 100 + 1);
+                      }
+
+                      Purchase purchase = Purchase(
+                        productName: _productNameController.text,
+                        dollarProductPrice: double.parse(_valueController.text),
+                        fullProductPrice: fullPrice,
+                        state: _dropDownValue != null ? _dropDownValue : "",
+                        image: _image != null ? ImageUtils.imageToBase64(_image) : "",
+                        isCard: _isCard
+                      );
+                      Navigator.pop(context, purchase);
+                    }
                   },
                 )
               ],

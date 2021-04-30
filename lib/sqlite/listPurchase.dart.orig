@@ -24,7 +24,7 @@ class _ListPurchaseState extends State<ListPurchase> {
     openDatabase(join(await getDatabasesPath(), 'purchase_database.db'),
             onCreate: (db, version) {
       return db.execute(
-        "CREATE TABLE purchase(id INTEGER PRIMARY KEY, productName TEXT, dollarProductPrice REAL, fullProductPrice REAL, image TEXT, state TEXT, isCard INTEGER)",
+        "CREATE TABLE purchase(id INTEGER PRIMARY KEY, productName TEXT, dollarProductPrice REAL, realProductPrice REAL, image TEXT)",
       );
     }, version: 1)
         .then((db) {
@@ -43,9 +43,7 @@ class _ListPurchaseState extends State<ListPurchase> {
           productName: maps[i]['productName'],
           dollarProductPrice: maps[i]['dollarProductPrice'],
           fullProductPrice: maps[i]['fullProductPrice'],
-          image: maps[i]['image'],
-          state: maps[i]['state'],
-          isCard: maps[i]['isCard']);
+          image: maps[i]['image']);
     });
     setState(() {});
   }
@@ -71,16 +69,9 @@ class _ListPurchaseState extends State<ListPurchase> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AddPurchase()))
-                .then((newPurchase) {
-              if (newPurchase != null) {
-                insertPurchase(newPurchase);
-              }
-            });
-          }),
+        child: Icon(Icons.add),
+        onPressed: () => Navigator.pushNamed(context, "/addPurchase"),
+      ),
     );
   }
 
@@ -88,6 +79,30 @@ class _ListPurchaseState extends State<ListPurchase> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
+<<<<<<< Updated upstream
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          child: ListTile(
+            leading: Text("${purchaseList[index].id}"),
+            title: Text("${purchaseList[index].productName}"),
+            subtitle: Text("${purchaseList[index].dollarProductPrice}"),
+             onTap: () {
+                 Navigator.push(
+                 context,
+                 MaterialPageRoute(
+                    builder: (context) => AddPurchase(purchaseItem: purchaseList[index]),
+                  ),
+                );
+            },
+            onLongPress: (){
+              deletePerson(index);
+            },
+          ),
+        )  ,
+      );
+=======
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(5.0),
@@ -97,53 +112,15 @@ class _ListPurchaseState extends State<ListPurchase> {
           title: Text("${purchaseList[index].productName}"),
           subtitle: Text("${purchaseList[index].dollarProductPrice}"),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    AddPurchase(purchaseItem: purchaseList[index])))
-                .then((updatedPurchase) {
-                  if (updatedPurchase != null) {
-                    updatePurchase(updatedPurchase);
-                  }
-                });
-            },
+            Navigator.pushNamed(context, "/addPurchase");
+          },
           onLongPress: () {
             deletePerson(index);
           },
         ),
       ),
     );
-  }
-
-  insertPurchase(Purchase purchase) {
-    _database
-        .insert(
-      'purchase',
-      purchase.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    )
-        .then((value) {
-      purchase.id = value;
-      setState(() {
-        purchaseList.add(purchase);
-      });
-    });
-  }
-
-  updatePurchase(Purchase purchase) {
-    _database
-        .update(
-      'purchase',
-      purchase.toMap(),
-      where: "id = ?",
-      whereArgs: [purchase.id],
-    ).then((value) {
-      setState(() {
-        purchaseList.clear();
-        readAll();
-      });
-    });
+>>>>>>> Stashed changes
   }
 
   deletePerson(int index) {
