@@ -36,18 +36,24 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   readAll() async {
-    final List<Map<String, dynamic>> maps = await _database.query('purchase');
-    purchaseList = List.generate(maps.length, (i) {
-      return Purchase(
-          id: maps[i]['id'],
-          productName: maps[i]['productName'],
-          dollarProductPrice: maps[i]['dollarProductPrice'],
-          fullProductPrice: maps[i]['fullProductPrice'],
-          image: maps[i]['image'],
-          state: maps[i]['state'],
-          isCard: maps[i]['isCard']);
-    });
-    setState(() {});
+    try {
+      final List<Map<String, dynamic>> maps = await _database.query('purchase');
+      purchaseList = List.generate(maps.length, (i) {
+        return Purchase(
+            id: maps[i]['id'],
+            productName: maps[i]['productName'],
+            dollarProductPrice: maps[i]['dollarProductPrice'],
+            fullProductPrice: maps[i]['fullProductPrice'],
+            image: maps[i]['image'],
+            state: maps[i]['state'],
+            isCard: maps[i]['isCard']
+        );
+      });
+
+      setState(() {});
+    } on Exception catch (e) {
+      print(e.toString());
+    }
   }
 
   @override

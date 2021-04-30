@@ -7,7 +7,7 @@ class Purchase {
   final double fullProductPrice;
   final String image;
   final String state;
-  final bool isCard;
+  final int isCard;
 
   Purchase(
       {this.id,

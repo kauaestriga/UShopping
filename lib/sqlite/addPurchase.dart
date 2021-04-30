@@ -28,7 +28,7 @@ class _AddPurchaseState extends State<AddPurchase> {
       _valueController.text = widget.purchaseItem.fullProductPrice.toString();
       if(widget.purchaseItem.image != "")
         _image = File.fromRawPath(ImageUtils.base64ToImage(widget.purchaseItem.image));
-      _isCard = widget.purchaseItem.isCard;
+      _isCard = widget.purchaseItem.isCard == 1;
     }
   }
 
@@ -136,7 +136,7 @@ class _AddPurchaseState extends State<AddPurchase> {
                         fullProductPrice: fullPrice,
                         state: _dropDownValue != null ? _dropDownValue : "",
                         image: _image != null ? ImageUtils.imageToBase64(_image) : "",
-                        isCard: _isCard
+                        isCard: _isCard ? 1 : 0
                       );
                       Navigator.pop(context, purchase);
                     }
