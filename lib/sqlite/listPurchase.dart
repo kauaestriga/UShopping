@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'model/purchase.dart';
 import 'addPurchase.dart';
+import 'package:flutter_app_ushopping/utils/ImageUtils.dart';
 
 class ListPurchase extends StatefulWidget {
   @override
@@ -69,13 +70,20 @@ class _ListPurchaseState extends State<ListPurchase> {
               })
         ],
       ),
-      body: ListView.separated(
-        itemCount: purchaseList.length,
-        itemBuilder: (context, index) => buildListItem(index, context),
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-        ),
-      ),
+      body: purchaseList.length == 0 ? 
+         Center(
+         child: Column(  
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Nenhum item na lista :(", style: TextStyle(fontSize: 30))
+            ])) : 
+          ListView.separated(
+            itemCount: purchaseList.length,
+            itemBuilder: (context, index) => buildListItem(index, context),
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+            ),
+          ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
@@ -99,7 +107,7 @@ class _ListPurchaseState extends State<ListPurchase> {
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: ListTile(
-          leading: Text("${purchaseList[index].id}"),
+          leading: purchaseList[index].image != "" ? Image.memory(ImageUtils.base64ToImage(purchaseList[index].image)) : Image.asset('images/gift_card.png'),
           title: Text("${purchaseList[index].productName}"),
           subtitle: Text("${purchaseList[index].dollarProductPrice}"),
           onTap: () {
