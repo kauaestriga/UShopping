@@ -12,7 +12,7 @@ class ListPurchase extends StatefulWidget {
 }
 
 class _ListPurchaseState extends State<ListPurchase> {
-  Database _database;
+  Database database;
   List<Purchase> purchaseList = <Purchase>[];
 
   @override
@@ -30,7 +30,7 @@ class _ListPurchaseState extends State<ListPurchase> {
     }, version: 1)
         .then((db) {
       setState(() {
-        _database = db;
+        database = db;
       });
       readAll();
     });
@@ -38,7 +38,7 @@ class _ListPurchaseState extends State<ListPurchase> {
 
   readAll() async {
     try {
-      final List<Map<String, dynamic>> maps = await _database.query('purchase');
+      final List<Map<String, dynamic>> maps = await database.query('purchase');
       purchaseList = List.generate(maps.length, (i) {
         return Purchase(
             id: maps[i]['id'],
@@ -47,8 +47,7 @@ class _ListPurchaseState extends State<ListPurchase> {
             fullProductPrice: maps[i]['fullProductPrice'],
             image: maps[i]['image'],
             state: maps[i]['state'],
-            isCard: maps[i]['isCard']
-        );
+            isCard: maps[i]['isCard']);
       });
 
       setState(() {});
@@ -70,20 +69,21 @@ class _ListPurchaseState extends State<ListPurchase> {
               })
         ],
       ),
-      body: purchaseList.length == 0 ? 
-         Center(
-         child: Column(  
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Nenhum item na lista :(", style: TextStyle(fontSize: 30))
-            ])) : 
-          ListView.separated(
-            itemCount: purchaseList.length,
-            itemBuilder: (context, index) => buildListItem(index, context),
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
+      body: purchaseList.length == 0
+          ? Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Text("Nenhum item na lista :(",
+                      style: TextStyle(fontSize: 30))
+                ]))
+          : ListView.separated(
+              itemCount: purchaseList.length,
+              itemBuilder: (context, index) => buildListItem(index, context),
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+              ),
             ),
-          ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
@@ -107,21 +107,24 @@ class _ListPurchaseState extends State<ListPurchase> {
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: ListTile(
-          leading: purchaseList[index].image != "" ? Image.memory(ImageUtils.base64ToImage(purchaseList[index].image)) : Image.asset('images/gift_card.png'),
+          leading: purchaseList[index].image != ""
+              ? Image.memory(
+                  ImageUtils.base64ToImage(purchaseList[index].image))
+              : Image.asset('images/gift_card.png'),
           title: Text("${purchaseList[index].productName}"),
           subtitle: Text("${purchaseList[index].dollarProductPrice}"),
           onTap: () {
             Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    AddPurchase(purchaseItem: purchaseList[index])))
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            AddPurchase(purchaseItem: purchaseList[index])))
                 .then((updatedPurchase) {
-                  if (updatedPurchase != null) {
-                    updatePurchase(updatedPurchase);
-                  }
-                });
-            },
+              if (updatedPurchase != null) {
+                updatePurchase(updatedPurchase);
+              }
+            });
+          },
           onLongPress: () {
             deletePerson(index);
           },
@@ -131,7 +134,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   insertPurchase(Purchase purchase) {
-    _database
+    database
         .insert(
       'purchase',
       purchase.toMap(),
@@ -146,8 +149,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   updatePurchase(Purchase purchase) {
-    _database
-        .update(
+    database.update(
       'purchase',
       purchase.toMap(),
       where: "id = ?",
@@ -161,7 +163,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   deletePerson(int index) {
-    _database.delete(
+    database.delete(
       'purchase',
       where: "id = ?",
       whereArgs: [purchaseList[index].id],
