@@ -37,20 +37,23 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   readAll() async {
-    final List<Map<String, dynamic>> maps = await _database.query('purchase');
-    purchaseList = List.generate(maps.length, (i) {
-      return Purchase(
-          id: maps[i]['id'],
-          productName: maps[i]['productName'],
-          dollarProductPrice: maps[i]['dollarProductPrice'],
-          fullProductPrice: maps[i]['fullProductPrice'],
-          image: maps[i]['image'],
-          state: maps[i]['state'],
-          isCard: maps[i]['isCard']
-      );
-    });
+    try {
+      final List<Map<String, dynamic>> maps = await database.query('purchase');
+      purchaseList = List.generate(maps.length, (i) {
+        return Purchase(
+            id: maps[i]['id'],
+            productName: maps[i]['productName'],
+            dollarProductPrice: maps[i]['dollarProductPrice'],
+            fullProductPrice: maps[i]['fullProductPrice'],
+            image: maps[i]['image'],
+            state: maps[i]['state'],
+            isCard: maps[i]['isCard']);
+      });
 
-    setState(() {});
+      setState(() {});
+    } on Exception catch (e) {
+      print(e.toString());
+    }
   }
 
   @override
@@ -109,7 +112,7 @@ class _ListPurchaseState extends State<ListPurchase> {
                   ImageUtils.base64ToImage(purchaseList[index].image))
               : Image.asset('images/gift_card.png'),
           title: Text("${purchaseList[index].productName}"),
-          subtitle: Text("U\$${purchaseList[index].dollarProductPrice.toStringAsFixed(2)}"),
+          subtitle: Text("${purchaseList[index].dollarProductPrice}"),
           onTap: () {
             Navigator.push(
                     context,
@@ -146,17 +149,15 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   updatePurchase(Purchase purchase) {
-    purchaseList.removeWhere((item) => item.id == purchase.id);
-
-    _database
-        .update(
+    database.update(
       'purchase',
       purchase.toMap(),
       where: "id = ?",
       whereArgs: [purchase.id],
     ).then((value) {
       setState(() {
-        purchaseList.add(purchase);
+        purchaseList.clear();
+        readAll();
       });
     });
   }

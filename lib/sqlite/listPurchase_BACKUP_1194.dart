@@ -37,6 +37,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   readAll() async {
+<<<<<<< HEAD
     final List<Map<String, dynamic>> maps = await _database.query('purchase');
     purchaseList = List.generate(maps.length, (i) {
       return Purchase(
@@ -49,6 +50,20 @@ class _ListPurchaseState extends State<ListPurchase> {
           isCard: maps[i]['isCard']
       );
     });
+=======
+    try {
+      final List<Map<String, dynamic>> maps = await database.query('purchase');
+      purchaseList = List.generate(maps.length, (i) {
+        return Purchase(
+            id: maps[i]['id'],
+            productName: maps[i]['productName'],
+            dollarProductPrice: maps[i]['dollarProductPrice'],
+            fullProductPrice: maps[i]['fullProductPrice'],
+            image: maps[i]['image'],
+            state: maps[i]['state'],
+            isCard: maps[i]['isCard']);
+      });
+>>>>>>> f6edd7868245e71d30ce44718576d89af6fb1753
 
     setState(() {});
   }
@@ -146,10 +161,14 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   updatePurchase(Purchase purchase) {
+<<<<<<< HEAD
     purchaseList.removeWhere((item) => item.id == purchase.id);
 
     _database
         .update(
+=======
+    database.update(
+>>>>>>> f6edd7868245e71d30ce44718576d89af6fb1753
       'purchase',
       purchase.toMap(),
       where: "id = ?",
