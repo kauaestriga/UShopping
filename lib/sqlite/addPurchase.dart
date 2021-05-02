@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_ushopping/sqlite/model/purchase.dart';
 import 'package:flutter_app_ushopping/utils/CustomButton.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_app_ushopping/utils/ImageUtils.dart';
 
@@ -13,45 +14,55 @@ import 'model/purchase.dart';
 class AddPurchase extends StatefulWidget {
   final Purchase purchaseItem;
 
-  const AddPurchase ({ Key key, this.purchaseItem }): super(key: key);
+  const AddPurchase({Key key, this.purchaseItem}) : super(key: key);
+
   @override
   _AddPurchaseState createState() => _AddPurchaseState();
 }
 
 class _AddPurchaseState extends State<AddPurchase> {
+  CollectionReference statesRefs;
 
   @override
   void initState() {
     super.initState();
 
+    statesRefs = Firestore.instance.collection("states");
+    _loadIofTax();
+
     if (widget.purchaseItem != null) {
+      _purchaseId = widget.purchaseItem.id;
       _productNameController.text = widget.purchaseItem.productName;
-      _valueController.text = widget.purchaseItem.fullProductPrice.toString();
-      if(widget.purchaseItem.image != "")
-        _image = File.fromRawPath(ImageUtils.base64ToImage(widget.purchaseItem.image));
+      _valueController.text = widget.purchaseItem.dollarProductPrice.toStringAsFixed(2);
+      if (widget.purchaseItem.image != "")
+        _imageBase64 = widget.purchaseItem.image;
+      _dropDownValue = widget.purchaseItem.state;
       _isCard = widget.purchaseItem.isCard == 1;
+      _loadStateTax(widget.purchaseItem.state);
+      _textAction = "Editar";
     }
   }
 
   final _formKey = GlobalKey<FormState>();
-  File _image;
-
-  String _dropDownValue;
-  // var _states = ['Alabama', 'Alaska', 'New York', 'Washington'];
-  // List<DropdownMenuItem> _stateItems = [];
-
-  bool _isCard = false;
-  double _iofTax = 6.38;
-  double _stateTax = 0;
-
   final TextEditingController _productNameController = TextEditingController();
-  final TextEditingController _valueController = TextEditingController();
+  final MoneyMaskedTextController _valueController = MoneyMaskedTextController(decimalSeparator: '.', thousandSeparator: ',');
+
+  File _image;
+  String _dropDownValue;
+
+  String _imageBase64 = "";
+  String _textAction = "Cadastrar";
+  bool _isCard = false;
+
+  double _iofTax = 0;
+  double _stateTax = 0;
+  int _purchaseId = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Cadastrar produto"),
+        title: Text("$_textAction produto"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -62,6 +73,8 @@ class _AddPurchaseState extends State<AddPurchase> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                       hintText: "Nome do produto",
                       labelText: "Nome do produto"),
@@ -83,7 +96,10 @@ class _AddPurchaseState extends State<AddPurchase> {
                                   height: 200,
                                   fit: BoxFit.fitWidth),
                             )
-                          : Image.asset('images/gift_card.png')),
+                          : _imageBase64 != ""
+                              ? Image.memory(
+                                  ImageUtils.base64ToImage(_imageBase64))
+                              : Image.asset('images/gift_card.png')),
                 ),
                 SizedBox(height: 16),
                 _loadItensDropDown(context),
@@ -92,6 +108,7 @@ class _AddPurchaseState extends State<AddPurchase> {
                     children: <Widget>[
                       Expanded(
                           child: TextFormField(
+                              keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                   hintText: "Valor (U\$)",
                                   labelText: "Valor (U\$)"),
@@ -120,26 +137,32 @@ class _AddPurchaseState extends State<AddPurchase> {
                     ]),
                 SizedBox(height: 16),
                 CustomButton(
-                  text: "Cadastrar",
+                  text: _textAction,
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
                       var fullPrice = double.parse(_valueController.text);
                       if (_stateTax != 0) {
-                        fullPrice = double.parse(_valueController.text) * (_stateTax / 100 + 1);
+                        fullPrice = double.parse(_valueController.text) *
+                            (_stateTax / 100 + 1);
                       }
 
                       if (_isCard) {
                         fullPrice = fullPrice * (_iofTax / 100 + 1);
                       }
 
+                      fullPrice = double.parse(fullPrice.toStringAsFixed(2));
+
                       Purchase purchase = Purchase(
-                        productName: _productNameController.text,
-                        dollarProductPrice: double.parse(_valueController.text),
-                        fullProductPrice: fullPrice,
-                        state: _dropDownValue != null ? _dropDownValue : "",
-                        image: _image != null ? ImageUtils.imageToBase64(_image) : "",
-                        isCard: _isCard ? 1 : 0
-                      );
+                          id: _purchaseId != 0 ? _purchaseId : null,
+                          productName: _productNameController.text,
+                          dollarProductPrice:
+                              double.parse(_valueController.text),
+                          fullProductPrice: fullPrice,
+                          state: _dropDownValue != null ? _dropDownValue : "",
+                          image: _image != null
+                              ? ImageUtils.imageToBase64(_image)
+                              : _imageBase64,
+                          isCard: _isCard ? 1 : 0);
                       Navigator.pop(context, purchase);
                     }
                   },
@@ -153,7 +176,8 @@ class _AddPurchaseState extends State<AddPurchase> {
   }
 
   _imgFromCamera() async {
-    PickedFile selectedFile = await ImagePicker().getImage(source: ImageSource.camera);
+    PickedFile selectedFile =
+        await ImagePicker().getImage(source: ImageSource.camera);
     File image = File(selectedFile.path);
 
     setState(() {
@@ -162,7 +186,8 @@ class _AddPurchaseState extends State<AddPurchase> {
   }
 
   _imgFromGallery() async {
-    PickedFile selectedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+    PickedFile selectedFile =
+        await ImagePicker().getImage(source: ImageSource.gallery);
     File image = File(selectedFile.path);
 
     setState(() {
@@ -202,27 +227,25 @@ class _AddPurchaseState extends State<AddPurchase> {
 
   Widget _loadItensDropDown(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection("states").snapshots(),
+      stream: statesRefs.snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) LinearProgressIndicator();
-
-        return _buildDropDown(snapshot.data.documents);
+        return snapshot.data == null
+            ? LinearProgressIndicator()
+            : _buildDropDown(snapshot.data.documents);
       },
     );
   }
 
   Widget _buildDropDown(List<DocumentSnapshot> snapshot) {
     List<DropdownMenuItem> _stateItems = [];
-    for(int i=0; i < snapshot.length; i++) {
+    for (int i = 0; i < snapshot.length; i++) {
       DocumentSnapshot snap = snapshot[i];
-      _stateItems.add(
-          DropdownMenuItem(
-            child: Text(
-              snap.documentID,
-            ),
-            value: "${snap.documentID}",
-          )
-      );
+      _stateItems.add(DropdownMenuItem(
+        child: Text(
+          snap.documentID,
+        ),
+        value: "${snap.documentID}",
+      ));
     }
 
     return DropdownButton(
@@ -237,37 +260,27 @@ class _AddPurchaseState extends State<AddPurchase> {
         onChanged: (newState) {
           _dropDownItemSelected(newState);
         },
-        value: this._dropDownValue
-    );
+        value: this._dropDownValue);
   }
 
   void _dropDownItemSelected(String newState) {
     setState(() {
       this._dropDownValue = newState;
+      _loadStateTax(newState);
     });
   }
+  
+  void _loadIofTax(){
+    Firestore.instance
+        .collection("ioftax")
+        .getDocuments()
+        .then((value) => this._iofTax = value.documents[0].documentID as double);
+  }
 
-  // _loadItensDropDown() {
-  //   return DropdownButton<String>(
-  //       iconEnabledColor: Colors.red,
-  //       isExpanded: true,
-  //       underline: Container(
-  //         height: 2,
-  //         color: Colors.redAccent,
-  //       ),
-  //       items: _states.map((String dropDownStringItem) {
-  //         return DropdownMenuItem<String>(
-  //           value: dropDownStringItem,
-  //           child: Text(dropDownStringItem),
-  //         );
-  //       }).toList(),
-  //       hint: new Text("Escolha o estado"),
-  //       onChanged: (String newState) {
-  //         _dropDownItemSelected(newState);
-  //         setState(() {
-  //           this._dropDownValue = newState;
-  //         });
-  //       },
-  //       value: _dropDownValue);
-  // }
+  void _loadStateTax(String state) {
+    statesRefs
+        .document(state)
+        .get()
+        .then((value) => this._stateTax = value.data['tax']);
+  }
 }

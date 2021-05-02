@@ -37,24 +37,20 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   readAll() async {
-    try {
-      final List<Map<String, dynamic>> maps = await _database.query('purchase');
-      purchaseList = List.generate(maps.length, (i) {
-        return Purchase(
-            id: maps[i]['id'],
-            productName: maps[i]['productName'],
-            dollarProductPrice: maps[i]['dollarProductPrice'],
-            fullProductPrice: maps[i]['fullProductPrice'],
-            image: maps[i]['image'],
-            state: maps[i]['state'],
-            isCard: maps[i]['isCard']
-        );
-      });
+    final List<Map<String, dynamic>> maps = await _database.query('purchase');
+    purchaseList = List.generate(maps.length, (i) {
+      return Purchase(
+          id: maps[i]['id'],
+          productName: maps[i]['productName'],
+          dollarProductPrice: maps[i]['dollarProductPrice'],
+          fullProductPrice: maps[i]['fullProductPrice'],
+          image: maps[i]['image'],
+          state: maps[i]['state'],
+          isCard: maps[i]['isCard']
+      );
+    });
 
-      setState(() {});
-    } on Exception catch (e) {
-      print(e.toString());
-    }
+    setState(() {});
   }
 
   @override
@@ -109,7 +105,7 @@ class _ListPurchaseState extends State<ListPurchase> {
         child: ListTile(
           leading: purchaseList[index].image != "" ? Image.memory(ImageUtils.base64ToImage(purchaseList[index].image)) : Image.asset('images/gift_card.png'),
           title: Text("${purchaseList[index].productName}"),
-          subtitle: Text("${purchaseList[index].dollarProductPrice}"),
+          subtitle: Text("U\$${purchaseList[index].dollarProductPrice.toStringAsFixed(2)}"),
           onTap: () {
             Navigator.push(
               context,
@@ -146,6 +142,8 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   updatePurchase(Purchase purchase) {
+    purchaseList.removeWhere((item) => item.id == purchase.id);
+
     _database
         .update(
       'purchase',
@@ -154,8 +152,7 @@ class _ListPurchaseState extends State<ListPurchase> {
       whereArgs: [purchase.id],
     ).then((value) {
       setState(() {
-        purchaseList.clear();
-        readAll();
+        purchaseList.add(purchase);
       });
     });
   }
