@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_ushopping/sqlite/model/purchase.dart';
@@ -36,7 +37,8 @@ class _AddPurchaseState extends State<AddPurchase> {
   File _image;
 
   String _dropDownValue;
-  var _states = ['Alabama', 'Alaska', 'New York', 'Washington'];
+  // var _states = ['Alabama', 'Alaska', 'New York', 'Washington'];
+  // List<DropdownMenuItem> _stateItems = [];
 
   bool _isCard = false;
   double _iofTax = 6.38;
@@ -84,7 +86,7 @@ class _AddPurchaseState extends State<AddPurchase> {
                           : Image.asset('images/gift_card.png')),
                 ),
                 SizedBox(height: 16),
-                _loadItensDropDown(),
+                _loadItensDropDown(context),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -198,28 +200,45 @@ class _AddPurchaseState extends State<AddPurchase> {
         });
   }
 
-  _loadItensDropDown() {
-    return DropdownButton<String>(
+  Widget _loadItensDropDown(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance.collection("states").snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) LinearProgressIndicator();
+
+        return _buildDropDown(snapshot.data.documents);
+      },
+    );
+  }
+
+  Widget _buildDropDown(List<DocumentSnapshot> snapshot) {
+    List<DropdownMenuItem> _stateItems = [];
+    for(int i=0; i < snapshot.length; i++) {
+      DocumentSnapshot snap = snapshot[i];
+      _stateItems.add(
+          DropdownMenuItem(
+            child: Text(
+              snap.documentID,
+            ),
+            value: "${snap.documentID}",
+          )
+      );
+    }
+
+    return DropdownButton(
         iconEnabledColor: Colors.red,
         isExpanded: true,
         underline: Container(
           height: 2,
           color: Colors.redAccent,
         ),
-        items: _states.map((String dropDownStringItem) {
-          return DropdownMenuItem<String>(
-            value: dropDownStringItem,
-            child: Text(dropDownStringItem),
-          );
-        }).toList(),
+        items: _stateItems,
         hint: new Text("Escolha o estado"),
-        onChanged: (String newState) {
+        onChanged: (newState) {
           _dropDownItemSelected(newState);
-          setState(() {
-            this._dropDownValue = newState;
-          });
         },
-        value: _dropDownValue);
+        value: this._dropDownValue
+    );
   }
 
   void _dropDownItemSelected(String newState) {
@@ -227,4 +246,28 @@ class _AddPurchaseState extends State<AddPurchase> {
       this._dropDownValue = newState;
     });
   }
+
+  // _loadItensDropDown() {
+  //   return DropdownButton<String>(
+  //       iconEnabledColor: Colors.red,
+  //       isExpanded: true,
+  //       underline: Container(
+  //         height: 2,
+  //         color: Colors.redAccent,
+  //       ),
+  //       items: _states.map((String dropDownStringItem) {
+  //         return DropdownMenuItem<String>(
+  //           value: dropDownStringItem,
+  //           child: Text(dropDownStringItem),
+  //         );
+  //       }).toList(),
+  //       hint: new Text("Escolha o estado"),
+  //       onChanged: (String newState) {
+  //         _dropDownItemSelected(newState);
+  //         setState(() {
+  //           this._dropDownValue = newState;
+  //         });
+  //       },
+  //       value: _dropDownValue);
+  // }
 }
