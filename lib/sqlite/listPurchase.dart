@@ -12,7 +12,7 @@ class ListPurchase extends StatefulWidget {
 }
 
 class _ListPurchaseState extends State<ListPurchase> {
-  Database database;
+  Database _database;
   List<Purchase> purchaseList = <Purchase>[];
 
   @override
@@ -30,7 +30,7 @@ class _ListPurchaseState extends State<ListPurchase> {
     }, version: 1)
         .then((db) {
       setState(() {
-        database = db;
+        _database = db;
       });
       readAll();
     });
@@ -46,8 +46,7 @@ class _ListPurchaseState extends State<ListPurchase> {
           fullProductPrice: maps[i]['fullProductPrice'],
           image: maps[i]['image'],
           state: maps[i]['state'],
-          isCard: maps[i]['isCard']
-      );
+          isCard: maps[i]['isCard']);
     });
 
     setState(() {});
@@ -109,7 +108,8 @@ class _ListPurchaseState extends State<ListPurchase> {
                   ImageUtils.base64ToImage(purchaseList[index].image))
               : Image.asset('images/gift_card.png'),
           title: Text("${purchaseList[index].productName}"),
-          subtitle: Text("U\$${purchaseList[index].dollarProductPrice.toStringAsFixed(2)}"),
+          subtitle: Text(
+              "U\$${purchaseList[index].dollarProductPrice.toStringAsFixed(2)}"),
           onTap: () {
             Navigator.push(
                     context,
@@ -131,7 +131,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   insertPurchase(Purchase purchase) {
-    database
+    _database
         .insert(
       'purchase',
       purchase.toMap(),
@@ -148,8 +148,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   updatePurchase(Purchase purchase) {
     purchaseList.removeWhere((item) => item.id == purchase.id);
 
-    _database
-        .update(
+    _database.update(
       'purchase',
       purchase.toMap(),
       where: "id = ?",
@@ -162,7 +161,7 @@ class _ListPurchaseState extends State<ListPurchase> {
   }
 
   deletePerson(int index) {
-    database.delete(
+    _database.delete(
       'purchase',
       where: "id = ?",
       whereArgs: [purchaseList[index].id],

@@ -10,13 +10,14 @@ class TotalPurchase extends StatefulWidget {
 
 class _TotalPurchaseState extends State<TotalPurchase> {
   double _dollarPrice = 0;
+  double realValue = 0;
   double _totalValue = 0;
-  Future<double> _total;
 
   @override
   void initState() {
     super.initState();
-    _total = _getTotalValue();
+    _getTotalValue();
+    _getDollarPrice();
   }
 
   @override
@@ -32,40 +33,32 @@ class _TotalPurchaseState extends State<TotalPurchase> {
             StreamBuilder<QuerySnapshot>(
               stream: Firestore.instance.collection("dollarprice").snapshots(),
               builder: (context, snapshot) {
-                _dollarPrice =
-                    double.parse(snapshot.data.documents[0].documentID);
+                if (snapshot.data != null)
+                  _dollarPrice =
+                      double.parse(snapshot.data.documents[0].documentID);
                 return snapshot.data == null
                     ? Text("Carregando")
                     : Text(
-                        "Valor Dolar R\$ ${snapshot.data.documents[0].documentID}");
+                        "Valor Dolar R\$ ${snapshot.data.documents[0].documentID}",
+                        style: TextStyle(fontSize: 15, color: Colors.red),
+                      );
               },
             ),
             Text(
               "Total em U\$",
               style: TextStyle(fontSize: 30),
             ),
-            FutureBuilder<double>(
-                future: _total,
-                builder:
-                    (BuildContext context, AsyncSnapshot<double> snapshot) {
-                  if (snapshot.data != null)
-                    Text(
-                      "${snapshot.data}",
-                      style: TextStyle(fontSize: 60, color: Colors.red),
-                    );
-                  else
-                    Text(
-                      "Carregando...",
-                      style: TextStyle(fontSize: 60, color: Colors.red),
-                    );
-                }),
+            Text(
+              "${_totalValue.toStringAsFixed(2)}",
+              style: TextStyle(fontSize: 60, color: Colors.red),
+            ),
             SizedBox(height: 60),
             Text(
               "Total em R\$",
               style: TextStyle(fontSize: 30),
             ),
             Text(
-              "1000",
+              '${realValue.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 60, color: Colors.green),
             )
           ],
@@ -74,22 +67,26 @@ class _TotalPurchaseState extends State<TotalPurchase> {
     );
   }
 
-  Future<double> _getTotalValue() async {
+  double _getDollarPrice() {
+    Firestore.instance.collection("dollarprice").getDocuments().then(
+        (value) => _dollarPrice = value.documents[0].documentID as double);
+  }
+
+  void _getTotalValue() async {
     var database = await openDatabase('purchase_database.db');
 
     var result =
         await database.rawQuery('select sum(fullProductPrice) from purchase');
 
-    // return Text(
-    //   result[0]["sum(fullProductPrice)"] != null
-    //       ? result[0]['sum(fullProductPrice)']
-    //       : 0,
-    //   style: TextStyle(fontSize: 60, color: Colors.red),
-    // );
+    setState(() {
+      if (result[0]['sum(fullProductPrice)'] != null)
+        _totalValue = result[0]['sum(fullProductPrice)'] as double;
+      else
+        _totalValue = 0;
 
-    if (result[0]['sum(fullProductPrice)'] != null)
-      return double.parse(result[0]['sum(fullProductPrice)']);
-    else
-      return 0;
+      realValue = _totalValue * _dollarPrice;
+      // _totalValue = double.parse(_totalValue.toStringAsFixed(2));
+      _totalValue = double.parse(_totalValue.toString());
+    });
   }
 }
